@@ -1,0 +1,11 @@
+{
+  "name": "insomnia-plugin-copy-timeline-and-response",
+  "version": "0.0.1",
+  "main": "src.js",
+  "insomnia": {
+    "name": "copy-timeline-and-response",
+    "displayName": "copy-timeline-and-response",
+    "description": "Copy timeline and response."
+  },
+  "unlisted": true
+}
