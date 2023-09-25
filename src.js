@@ -1,5 +1,9 @@
 (() => {
   
+  /* Optional settings */
+  const OptionalSettingSetSeparator = "";
+  const OptionalSettingDisplayCurrentTimezoneTime = false;
+  
   /* Wait specified millisecond */
   const waitMillisecond = (millisecond) => {
     return new Promise(resolve => setTimeout(resolve, millisecond));
@@ -15,6 +19,24 @@
   const clickPreviewTab = () => {
     return new Promise((resolve) => {
       document.querySelector("[data-key='preview']").click();
+      document.querySelector("[data-key='preview']").click();
+      resolve();
+    });
+  };
+  
+  const clickPreviewModeModal = () => {
+    return new Promise((resolve) => {
+      /* 1回のクリックだと反応しない場合があるので二度Clickする */
+      document.querySelector("[data-key='preview']").getElementsByTagName("i")[0].click();
+      document.querySelector("[data-key='preview']").getElementsByTagName("i")[0].click();
+      resolve();
+    });
+  };
+  
+  const clickRawDataInPreviewMode = () => {
+    return new Promise((resolve) => {
+      const searchTargetText = "Raw Data"
+      document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "' + searchTargetText + '")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0).click();
       resolve();
     });
   };
@@ -31,7 +53,9 @@
     return new Promise((resolve) => {
       const panelHeaderValueElements = document.querySelector("[aria-live='polite']").getElementsByTagName("div");
       const values = Array.from(new Set(Array.from(panelHeaderValueElements).map(e => e.textContent))).join(", ");
-      result.value += "----------------------------------\n";
+      if (OptionalSettingSetSeparator !== "") {
+        result.value += OptionalSettingSetSeparator + "\n";
+      }
       result.value += values;
       resolve(result);
     });
@@ -40,7 +64,8 @@
   const getTimelineContent = (result) => {
     return new Promise((resolve) => {
       const timelineElement = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling;
-      const timelineContent = Array.from(timelineElement.getElementsByTagName("pre")).map(e => e.textContent).join("\n");
+      /* 先頭の xxxxxxxxxx という文字を削って保存 + GMTのよこにJST追加 */
+      const timelineContent = Array.from(timelineElement.getElementsByTagName("pre")).map(e => e.textContent).join("\n").slice(10);
       const getFormattedDate = (date) => {
         let weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         let yyyy = date.getFullYear();
@@ -52,20 +77,28 @@
         let week = weekday[date.getDay()];
         return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
       };
-      /* 先頭の xxxxxxxxxx という文字を削って保存 + GMTのよこにJST追加 */
-      result.value += timelineContent.slice(10).replace(/(date:.*GMT)/g, (s) => {
-        return s + " ( " + getFormattedDate(new Date(Date.parse(s))) + " JST )";
-      });
+      result.value += timelineContent;
+      if (OptionalSettingDisplayCurrentTimezoneTime) {
+        result.value = result.value.replace(/(date:.*GMT)/g, (s) => {
+          return s + " ( " + getFormattedDate(new Date(Date.parse(s))) + " )";
+        });
+      }
       resolve(result);
     });
   };
   
   const getPreviewContent = (result) => {
     return new Promise((resolve) => {
-      const responseElement = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling;
-      const responseContent = Array.from(responseElement.getElementsByTagName("pre")).map(e => e.textContent).join("\n");
-      /* 先頭の xxxxxxxxxx という文字を削って保存 */
-      result.value += responseContent.slice(10) + "\n";
+      const previewContent = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling.textContent;
+      /* remove prefix "xxxxxxxxxx " */
+      let previewContentResult = previewContent.slice(11);
+      try {
+        /* If preview content is json string, it is formatted. */
+        previewContentResult = JSON.stringify(JSON.parse(previewContentResult), null, 2);
+      } catch (e) {
+        console.log(e);
+      }
+      result.value += "\n" + previewContentResult + "\n";
       resolve(result);
     });
   };
@@ -94,9 +127,12 @@
         await waitMillisecond(100);
         await getPanelHeaderValues(result);
         await getTimelineContent(result);
-        await waitMillisecond(100);
         await clickPreviewTab();
         await waitMillisecond(100);
+        await clickPreviewModeModal();
+        await waitMillisecond(200);
+        await clickRawDataInPreviewMode()
+        await waitMillisecond(300);
         await getPreviewContent(result);
         await copy(result);
       })();
@@ -107,9 +143,10 @@
     signUpNode.parentNode.insertBefore(copyButton, signUpNode.nextSibling);
   };
   
-  /* メイン処理 */
+  /* main */
   const main = () => {
-    createCopyButton();
+    const waitTimeMillSeconds = 3000;
+    setTimeout(createCopyButton, waitTimeMillSeconds);
   };
   
   main();

@@ -5,7 +5,11 @@
   "insomnia": {
     "name": "copy-timeline-and-response",
     "displayName": "copy-timeline-and-response",
-    "description": "Copy timeline and response."
+    "description": "Copy timeline and response.",
+    "publisher": {
+      "name": "xshoji",
+      "icon": "https://avatars.githubusercontent.com/u/40511798?v=4"
+    }
   },
   "unlisted": true
 }
