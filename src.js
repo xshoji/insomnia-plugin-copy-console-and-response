@@ -19,7 +19,6 @@
   const clickPreviewTab = () => {
     return new Promise((resolve) => {
       document.querySelector("[data-key='preview']").click();
-      document.querySelector("[data-key='preview']").click();
       resolve();
     });
   };
