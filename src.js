@@ -79,7 +79,7 @@
       };
       result.value += timelineContent;
       if (OptionalSettingDisplayCurrentTimezoneTime) {
-        result.value = result.value.replace(/(date:.*GMT)/g, (s) => {
+        result.value = result.value.replace(/([d|D]ate:.*GMT)/g, (s) => {
           return s + " ( " + getFormattedDate(new Date(Date.parse(s))) + " )";
         });
       }
