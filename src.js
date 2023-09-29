@@ -1,4 +1,7 @@
 (() => {
+
+  /* Constant value */
+  const PluginName = "insomnia-plugin-copy-timeline-and-response";
   
   /* Optional settings */
   const OptionalSettingSetSeparator = "";
@@ -123,7 +126,7 @@
     
     /* icons.css/dist/icons.css at master · picturepan2/icons.css https://github.com/picturepan2/icons.css/blob/master/dist/icons.css */
     appendCssDefinition(`
-      .copy-timeline-icon {
+      .${PluginName}-icon {
         box-sizing: border-box;
         display: inline-block;
         font-size: inherit;
@@ -135,8 +138,8 @@
         width: 1em;
       }
       
-      .copy-timeline-icon::before,
-      .copy-timeline-icon::after {
+      .${PluginName}-icon::before,
+      .${PluginName}-icon::after {
         content: "";
         display: block;
         left: 50%;
@@ -145,7 +148,7 @@
         transform: translate(-50%, -50%);
       }
       
-      .copy-timeline-icon-copy::before {
+      .${PluginName}-icon-copy::before {
         border: .1rem solid currentColor;
         border-bottom-color: transparent;
         border-radius: .1em;
@@ -156,7 +159,7 @@
         width: .7em;
       }
       
-      .copy-timeline-icon-copy::after {
+      .${PluginName}-icon-copy::after {
         border: .1rem solid currentColor;
         border-radius: .1em;
         height: .8em;
@@ -169,7 +172,7 @@
     copyButton.style.cssText = "display: flex;";
     copyButton.innerHTML = `
     <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); display: flex; justify-content: center; align-items: center;">
-      <div class="copy-timeline-icon copy-timeline-icon-copy" style="margin: 2px 5px 0px 3px"></div>
+      <div class="${PluginName}-icon ${PluginName}-icon-copy" style="margin: 2px 5px 0px 3px"></div>
       <div style="display: flex; justify-content: center; align-items: center;">Timeline</div>
     </button>
     `;
