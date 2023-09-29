@@ -9,6 +9,14 @@
     return new Promise(resolve => setTimeout(resolve, millisecond));
   };
   
+  const appendCssDefinition = (cssDefinition) => {
+    // Define main class style
+    let styleElement = document.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.innerHTML = cssDefinition;
+    document.getElementsByTagName('head')[0].appendChild(styleElement);
+  };
+  
   const clickTimelineTab = () => {
     return new Promise((resolve) => {
       document.querySelector("[data-key='timeline']").click();
@@ -112,10 +120,57 @@
   const createCopyButton = () => {
     /* <button type="button" style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%);">Copy</button> */
     const copyButton = document.createElement("div");
+    
+    /* icons.css/dist/icons.css at master · picturepan2/icons.css https://github.com/picturepan2/icons.css/blob/master/dist/icons.css */
+    appendCssDefinition(`
+      .copy-timeline-icon {
+        box-sizing: border-box;
+        display: inline-block;
+        font-size: inherit;
+        font-style: normal;
+        height: 1em;
+        position: relative;
+        text-indent: -9999px;
+        vertical-align: middle;
+        width: 1em;
+      }
+      
+      .copy-timeline-icon::before,
+      .copy-timeline-icon::after {
+        content: "";
+        display: block;
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .copy-timeline-icon-copy::before {
+        border: .1rem solid currentColor;
+        border-bottom-color: transparent;
+        border-radius: .1em;
+        border-right-color: transparent;
+        height: .8em;
+        left: 40%;
+        top: 40%;
+        width: .7em;
+      }
+      
+      .copy-timeline-icon-copy::after {
+        border: .1rem solid currentColor;
+        border-radius: .1em;
+        height: .8em;
+        left: 60%;
+        top: 60%;
+        width: .7em;
+      }
+    `)
+    
     copyButton.style.cssText = "display: flex;";
     copyButton.innerHTML = `
-    <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); justify-content: center; align-items: center;">
-        Copy
+    <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); display: flex; justify-content: center; align-items: center;">
+      <div class="copy-timeline-icon copy-timeline-icon-copy" style="margin: 2px 5px 0px 3px"></div>
+      <div style="display: flex; justify-content: center; align-items: center;">Timeline</div>
     </button>
     `;
     copyButton.addEventListener("click", () => {
