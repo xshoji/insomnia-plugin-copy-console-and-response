@@ -111,9 +111,13 @@
   
   const createCopyButton = () => {
     /* <button type="button" style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%);">Copy</button> */
-    const copyButton = document.createElement("button");
-    copyButton.style.cssText = "padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%);";
-    copyButton.textContent = "Copy";
+    const copyButton = document.createElement("div");
+    copyButton.style.cssText = "display: flex;";
+    copyButton.innerHTML = `
+    <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); justify-content: center; align-items: center;">
+        Copy
+    </button>
+    `;
     copyButton.addEventListener("click", () => {
       const result = {
         value: ""
