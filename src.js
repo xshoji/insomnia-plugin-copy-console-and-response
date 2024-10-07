@@ -119,7 +119,7 @@
     return new Promise((resolve) => {
       /* Replace secret value */
       const v =  result.value.replaceAll(/(Authorization: Bearer|"access_token":)(.*)/g, "$1 ****");
-      navigator.clipboard.writeText(result.value);
+      navigator.clipboard.writeText(v);
       resolve(result);
     });
   };
