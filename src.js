@@ -73,6 +73,8 @@
   
   const getTimelineContent = (result) => {
     return new Promise((resolve) => {
+      /* curl用のprefix文字列を削除 */
+      Array.from(document.getElementsByClassName("cm-curl-prefix cm-curl-data")).forEach(e => e.remove());
       const timelineElement = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling;
       /* 先頭の xxxxxxxxxx という文字を削って保存 + GMTのよこにJST追加 */
       const timelineContent = Array.from(timelineElement.getElementsByTagName("pre")).map(e => e.textContent).join("\n").slice(10);
@@ -115,6 +117,8 @@
   
   const copy = (result) => {
     return new Promise((resolve) => {
+      /* Replace secret value */
+      const v =  result.value.replaceAll(/(Authorization: Bearer|"access_token":)(.*)/g, "$1 ****");
       navigator.clipboard.writeText(result.value);
       resolve(result);
     });
