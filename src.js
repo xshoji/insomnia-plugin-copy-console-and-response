@@ -6,6 +6,7 @@
   /* Optional settings */
   const OptionalSettingSetSeparator = "";
   const OptionalSettingDisplayCurrentTimezoneTime = false;
+  const MaskingLogFiledRegex = /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g;
   
   /* Wait specified millisecond */
   const waitMillisecond = (millisecond) => {
@@ -116,7 +117,7 @@
   const copy = (result) => {
     return new Promise((resolve) => {
       /* Replace secret value */
-      const v =  result.value.replaceAll(/([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g, "$1 ****");
+      const v =  result.value.replaceAll(MaskingLogFiledRegex, "$1 ****");
       navigator.clipboard.writeText(v);
       resolve(result);
     });
