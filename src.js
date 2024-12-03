@@ -36,9 +36,7 @@
   
   const clickPreviewModeModal = () => {
     return new Promise((resolve) => {
-      /* 1回のクリックだと反応しない場合があるので二度Clickする */
-      document.querySelector("[data-key='preview']").getElementsByTagName("i")[0].click();
-      document.querySelector("[data-key='preview']").getElementsByTagName("i")[0].click();
+      document.querySelector("[data-key='preview']").parentElement.nextElementSibling.querySelector("[type='Button']").click();
       resolve();
     });
   };
@@ -53,7 +51,7 @@
   
   const scrollTimeline = () => {
     return new Promise((resolve) => {
-      const timelineElement = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling;
+      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
       timelineElement.getElementsByClassName("CodeMirror-scroll")[0].scroll(0, 10000);
       resolve();
     });
@@ -75,7 +73,7 @@
     return new Promise((resolve) => {
       /* curl用のprefix文字列を削除 */
       Array.from(document.getElementsByClassName("cm-curl-prefix cm-curl-data")).forEach(e => e.remove());
-      const timelineElement = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling;
+      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
       /* 先頭の xxxxxxxxxx という文字を削って保存 + GMTのよこにJST追加 */
       const timelineContent = Array.from(timelineElement.getElementsByTagName("pre")).map(e => e.textContent).join("\n").slice(10);
       const getFormattedDate = (date) => {
@@ -101,9 +99,9 @@
   
   const getPreviewContent = (result) => {
     return new Promise((resolve) => {
-      const previewContent = document.querySelector("[aria-label='Response pane tabs']").nextElementSibling.textContent;
-      /* remove prefix "xxxxxxxxxx " */
-      let previewContentResult = previewContent.slice(11);
+      const previewContent = document.querySelector("[data-key='preview']").parentElement.nextElementSibling.textContent;
+      /* remove prefix "Rawxxxxxxxxxx " */
+      let previewContentResult = previewContent.slice(14);
       try {
         /* If preview content is json string, it is formatted. */
         previewContentResult = JSON.stringify(JSON.parse(previewContentResult), null, 2);
@@ -118,7 +116,7 @@
   const copy = (result) => {
     return new Promise((resolve) => {
       /* Replace secret value */
-      const v =  result.value.replaceAll(/(Cookie:|Authorization: Bearer|"access_token":)(.*)/g, "$1 ****");
+      const v =  result.value.replaceAll(/([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g, "$1 ****");
       navigator.clipboard.writeText(v);
       resolve(result);
     });
@@ -202,7 +200,7 @@
         await copy(result);
       })();
     })
-    const searchTargetText = "Sign Up";
+    const searchTargetText = "Sign up for free";
     const nodesSnapshot = document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "' + searchTargetText + '")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     const signUpNode = nodesSnapshot.snapshotItem(0);
     signUpNode.parentNode.insertBefore(copyButton, signUpNode.nextSibling);
