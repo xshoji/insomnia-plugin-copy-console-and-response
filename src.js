@@ -117,20 +117,33 @@
 
   const acquireCompleteTimeline = async (result) => {
     let mergedContent = "";
-    // 初期状態の可視領域の内容を取得
     mergedContent += fetchTimelineContent() + "\n";
     do {
+      // スクロール前の位置を取得
+      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+      let codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+      const prevScrollTop = codeMirrorScroll.scrollTop;
+
       await scrollTimeline();
       await waitMillisecond(100);
-      // スクロール後の可視領域の内容をマージ
+
+      // スクロール後の位置を再取得
+      codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+      const newScrollTop = codeMirrorScroll.scrollTop;
+      console.log("prevScrollTop: " + prevScrollTop + ", newScrollTop: " + newScrollTop);
+      // 進捗がない場合はループ終了
+      if (newScrollTop === prevScrollTop) {
+        console.log("No scroll progress, breaking loop");
+        break;
+      }
+
       mergedContent += fetchTimelineContent() + "\n";
-      // スクロール可能かどうかを判定
-      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-      const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
-      if (codeMirrorScroll.scrollTop + codeMirrorScroll.clientHeight >= codeMirrorScroll.scrollHeight) {
+      console.log("codeMirrorScroll.scrollTop: " + newScrollTop + ", clientHeight: " + codeMirrorScroll.clientHeight + ", scrollHeight: " + codeMirrorScroll.scrollHeight);
+      if (newScrollTop + codeMirrorScroll.clientHeight >= codeMirrorScroll.scrollHeight) {
         break;
       }
     } while (true);
+    console.log("finishd scroll");
     result.value += mergedContent;
   };
 
