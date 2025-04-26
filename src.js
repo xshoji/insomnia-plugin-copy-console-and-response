@@ -107,7 +107,15 @@
       await scrollTimeline();
       await waitMillisecond(100);
       currentContent = fetchTimelineContent();
-      if (currentContent === prevContent) break;
+      // ここでスクロール可能かどうかを判定
+      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+      const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+      if (codeMirrorScroll.scrollTop + codeMirrorScroll.clientHeight >= codeMirrorScroll.scrollHeight) {
+        // 残りの差分を追加してループ終了
+        let diff = currentContent.substring(prevContent.length);
+        mergedContent += diff;
+        break;
+      }
       // 既に取得済みの部分を除いた新規差分を抽出
       let diff = currentContent.substring(prevContent.length);
       mergedContent += diff;
