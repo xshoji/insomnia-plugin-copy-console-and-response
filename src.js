@@ -76,10 +76,26 @@
   const fetchTimelineContent = () => {
     /* curl用のprefix文字列を削除 */
     Array.from(document.getElementsByClassName("cm-curl-prefix cm-curl-data")).forEach(e => e.remove());
+    // 取得対象のタイムラインコンテナ
     const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-    /* 先頭の xxxxxxxxxx という文字を削って保存 + GMTのよこにJST追加 */
-    let timelineContent = Array.from(timelineElement.getElementsByTagName("pre"))
-      .map(e => e.textContent).join("\n").slice(10);
+    const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+    // 取得領域の可視領域情報
+    const scrollRect = codeMirrorScroll.getBoundingClientRect();
+    // コード行（pre要素）をすべて取得し、可視領域にあるものだけをフィルタ
+    const preElements = Array.from(codeMirrorScroll.querySelectorAll("pre"));
+    const visiblePreElements = preElements.filter(pre => {
+      const preRect = pre.getBoundingClientRect();
+      return preRect.bottom > scrollRect.top && preRect.top < scrollRect.bottom;
+    });
+    // 可視行のみからテキストを連結
+    let timelineContent = visiblePreElements.map(e => e.textContent).join("\n");
+    // スクロールがTOPでない場合、取得されたデータの最初の1行目を削除する
+    if (codeMirrorScroll.scrollTop > 0) {
+      timelineContent = timelineContent.split("\n").slice(1).join("\n");
+    } else {
+      // スクロールがTOPの場合だけ、先頭の不要な部分を削除
+      timelineContent = timelineContent.slice(10);
+    }
     const getFormattedDate = (date) => {
       let weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       let yyyy = date.getFullYear();
@@ -101,20 +117,13 @@
 
   const acquireCompleteTimeline = async (result) => {
     let mergedContent = "";
-    let prevLineCount = 0;
-    let currentContent = "";
+    // 初期状態の可視領域の内容を取得
+    mergedContent += fetchTimelineContent() + "\n";
     do {
       await scrollTimeline();
       await waitMillisecond(100);
-      currentContent = fetchTimelineContent();
-      // 取得結果を行毎に分割
-      const currentLines = currentContent.split(/\r?\n/);
-      // 新規行があれば抽出
-      if (currentLines.length > prevLineCount) {
-        const newLines = currentLines.slice(prevLineCount).join("\n");
-        mergedContent += newLines + "\n";
-        prevLineCount = currentLines.length;
-      }
+      // スクロール後の可視領域の内容をマージ
+      mergedContent += fetchTimelineContent() + "\n";
       // スクロール可能かどうかを判定
       const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
       const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
