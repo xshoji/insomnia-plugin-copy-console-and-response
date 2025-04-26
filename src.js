@@ -101,25 +101,26 @@
 
   const acquireCompleteTimeline = async (result) => {
     let mergedContent = "";
-    let prevContent = "";
+    let prevLineCount = 0;
     let currentContent = "";
     do {
       await scrollTimeline();
       await waitMillisecond(100);
       currentContent = fetchTimelineContent();
-      // ここでスクロール可能かどうかを判定
+      // 取得結果を行毎に分割
+      const currentLines = currentContent.split(/\r?\n/);
+      // 新規行があれば抽出
+      if (currentLines.length > prevLineCount) {
+        const newLines = currentLines.slice(prevLineCount).join("\n");
+        mergedContent += newLines + "\n";
+        prevLineCount = currentLines.length;
+      }
+      // スクロール可能かどうかを判定
       const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
       const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
       if (codeMirrorScroll.scrollTop + codeMirrorScroll.clientHeight >= codeMirrorScroll.scrollHeight) {
-        // 残りの差分を追加してループ終了
-        let diff = currentContent.substring(prevContent.length);
-        mergedContent += diff;
         break;
       }
-      // 既に取得済みの部分を除いた新規差分を抽出
-      let diff = currentContent.substring(prevContent.length);
-      mergedContent += diff;
-      prevContent = currentContent;
     } while (true);
     result.value += mergedContent;
   };
