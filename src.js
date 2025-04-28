@@ -21,44 +21,28 @@
     document.getElementsByTagName('head')[0].appendChild(styleElement);
   };
 
-  const clickTimelineTab = () => {
-    return new Promise((resolve) => {
-      document.querySelector("[data-key='timeline']").click();
-      resolve();
-    });
+  const clickTimelineTab = async () => {
+    document.querySelector("[data-key='timeline']").click();
   };
 
-  const clickPreviewTab = () => {
-    return new Promise((resolve) => {
-      document.querySelector("[data-key='preview']").click();
-      resolve();
-    });
+  const clickPreviewTab = async () => {
+    document.querySelector("[data-key='preview']").click();
   };
 
-  const clickPreviewModeModal = () => {
-    return new Promise((resolve) => {
-      document.querySelector("[data-key='preview']").parentElement.nextElementSibling.querySelector("[type='Button']").click();
-      resolve();
-    });
+  const clickPreviewModeModal = async () => {
+    document.querySelector("[data-key='preview']").parentElement.nextElementSibling.querySelector("[type='Button']").click();
   };
 
-  const clickRawDataInPreviewMode = () => {
-    return new Promise((resolve) => {
-      const searchTargetText = "Raw Data"
-      document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "' + searchTargetText + '")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0).click();
-      resolve();
-    });
+  const clickRawDataInPreviewMode = async () => {
+    document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "Raw Data")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0).click();
   };
 
-  const scrollTimeline = () => {
-    return new Promise((resolve) => {
-      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-      const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
-      // スクロール量を表示領域の高さ分に設定
-      const scrollAmount = codeMirrorScroll.clientHeight;
-      codeMirrorScroll.scroll(0, codeMirrorScroll.scrollTop + scrollAmount);
-      resolve();
-    });
+  const scrollTimeline = async () => {
+    // 取得したタイムラインコンテナを変数に保持
+    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+    const codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
+    const scrollAmount = codeMirrorScroll.clientHeight;
+    codeMirrorScroll.scroll(0, codeMirrorScroll.scrollTop + scrollAmount);
   };
 
   const getPanelHeaderValues = (result) => {
@@ -76,9 +60,9 @@
   const fetchTimelineContent = () => {
     /* curl用のprefix文字列を削除 */
     Array.from(document.getElementsByClassName("cm-curl-prefix cm-curl-data")).forEach(e => e.remove());
-    // 取得対象のタイムラインコンテナ
-    const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-    const codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+    // タイムラインコンテナの取得を1度だけにする
+    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+    const codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
     // 取得領域の可視領域情報
     const scrollRect = codeMirrorScroll.getBoundingClientRect();
     // コード行（pre要素）をすべて取得し、可視領域にあるものだけをフィルタ
@@ -120,14 +104,13 @@
     let previousContent = fetchTimelineContent();
     mergedContent += previousContent + "\n";
 
-    // 前回のスクロール位置を記録
     let prevScrollTop = 0;
     let isLastScrollDetected = false;
 
     do {
-      // スクロール前の位置を取得
-      const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-      let codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+      // タイムラインコンテナを1度取得して変数に保持
+      const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+      let codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
       prevScrollTop = codeMirrorScroll.scrollTop;
 
       // 事前に最後のスクロールかどうかを判定
@@ -142,8 +125,8 @@
       await scrollTimeline();
       await waitMillisecond(100);
 
-      // スクロール後の位置を再取得
-      codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
+      // 余分なDOMアクセスを削減するため、再度同じ変数から取得
+      codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
       const newScrollTop = codeMirrorScroll.scrollTop;
       console.log("Scrolled from", prevScrollTop, "to", newScrollTop);
 
