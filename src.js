@@ -117,12 +117,27 @@
 
   const acquireCompleteTimeline = async (result) => {
     let mergedContent = "";
-    mergedContent += fetchTimelineContent() + "\n";
+    let previousContent = fetchTimelineContent();
+    mergedContent += previousContent + "\n";
+
+    // 前回のスクロール位置を記録
+    let prevScrollTop = 0;
+    let isLastScrollDetected = false;
+
     do {
       // スクロール前の位置を取得
       const timelineElement = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
       let codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
-      const prevScrollTop = codeMirrorScroll.scrollTop;
+      prevScrollTop = codeMirrorScroll.scrollTop;
+
+      // 事前に最後のスクロールかどうかを判定
+      const willBeLastScroll = (prevScrollTop + codeMirrorScroll.clientHeight * 2 >= codeMirrorScroll.scrollHeight);
+      console.log("Pre-checking if this will be the last scroll:",
+        "prevScrollTop:", prevScrollTop,
+        "clientHeight:", codeMirrorScroll.clientHeight,
+        "scrollHeight:", codeMirrorScroll.scrollHeight,
+        "willBeLastScroll:", willBeLastScroll
+      );
 
       await scrollTimeline();
       await waitMillisecond(100);
@@ -130,20 +145,99 @@
       // スクロール後の位置を再取得
       codeMirrorScroll = timelineElement.getElementsByClassName("CodeMirror-scroll")[0];
       const newScrollTop = codeMirrorScroll.scrollTop;
-      console.log("prevScrollTop: " + prevScrollTop + ", newScrollTop: " + newScrollTop);
+      console.log("Scrolled from", prevScrollTop, "to", newScrollTop);
+
       // 進捗がない場合はループ終了
       if (newScrollTop === prevScrollTop) {
         console.log("No scroll progress, breaking loop");
         break;
       }
 
-      mergedContent += fetchTimelineContent() + "\n";
-      console.log("codeMirrorScroll.scrollTop: " + newScrollTop + ", clientHeight: " + codeMirrorScroll.clientHeight + ", scrollHeight: " + codeMirrorScroll.scrollHeight);
-      if (newScrollTop + codeMirrorScroll.clientHeight >= codeMirrorScroll.scrollHeight) {
+      // 現在のコンテンツを取得
+      const currentContent = fetchTimelineContent();
+
+      // データの処理方法を決定
+      if (!isLastScrollDetected) {
+        // まだ最後のスクロールが検出されていない場合
+        if (willBeLastScroll) {
+          // 最後のスクロールになりそうな場合に差分検出
+          console.log("Processing potential last scroll data");
+          isLastScrollDetected = true; // 最後のスクロールとして検出済みとマーク
+
+          // 複数行の比較による重複検出
+          const currentLines = currentContent.split("\n");
+          const prevLines = previousContent.split("\n");
+
+          // 前回のコンテンツの最後の最大5行を取得
+          const linesToCompare = 5;
+          const prevLastLines = prevLines.slice(Math.max(0, prevLines.length - linesToCompare));
+
+          // 連続一致を確認
+          let overlapIndex = -1;
+
+          if (prevLastLines.length > 0 && currentLines.length > 0) {
+            console.log("Comparing", prevLastLines.length, "previous lines with current content");
+
+            // 現在のコンテンツの各行から開始して、連続一致をチェック
+            for (let i = 0; i <= currentLines.length - prevLastLines.length; i++) {
+              let allLinesMatch = true;
+
+              // 選択した開始位置から連続するN行が一致するかチェック
+              for (let j = 0; j < prevLastLines.length; j++) {
+                if (currentLines[i + j] !== prevLastLines[j]) {
+                  allLinesMatch = false;
+                  break;
+                }
+              }
+
+              // 全行が一致した場合、開始位置を記録
+              if (allLinesMatch) {
+                overlapIndex = i + prevLastLines.length - 1;
+                console.log("Found matching pattern at index:", i, "to", overlapIndex,
+                  "Previous lines:", JSON.stringify(prevLastLines),
+                  "Current matching section:", JSON.stringify(currentLines.slice(i, i + prevLastLines.length)));
+                break;
+              }
+            }
+
+            if (overlapIndex === -1) {
+              console.log("No matching pattern found between previous and current content");
+            }
+          } else {
+            console.log("Not enough lines to compare. Previous:", prevLastLines.length, "Current:", currentLines.length);
+          }
+
+          // 重複していない部分だけを追加
+          if (overlapIndex !== -1 && overlapIndex < currentLines.length - 1) {
+            const uniqueLines = currentLines.slice(overlapIndex + 1);
+            mergedContent += uniqueLines.join("\n") + "\n";
+            console.log("Added", uniqueLines.length, "unique lines");
+          } else {
+            // 重複が見つからない場合は全て追加
+            mergedContent += currentContent + "\n";
+            console.log("No overlap found, added all content");
+          }
+        } else {
+          // 通常のスクロールでは全コンテンツを追加
+          mergedContent += currentContent + "\n";
+          console.log("Normal scroll, added all content");
+        }
+      } else {
+        // 既に最後のスクロールとして検出済みの場合、コンテンツは追加しない
+        console.log("Already processed last scroll, skipping content addition");
+      }
+
+      // 次回の比較用に現在のコンテンツを保存
+      previousContent = currentContent;
+
+      // 実際にスクロールが最後に達した場合はループを終了
+      if (isLastScrollDetected) {
+        console.log("Last scroll was already detected, breaking after this iteration");
         break;
       }
     } while (true);
-    console.log("finishd scroll");
+
+    console.log("Finished scrolling");
     result.value += mergedContent;
   };
 
