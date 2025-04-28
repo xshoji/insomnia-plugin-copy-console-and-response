@@ -156,75 +156,50 @@
       // 現在のコンテンツを取得
       const currentContent = fetchTimelineContent();
 
-      // データの処理方法を決定
-      if (!isLastScrollDetected) {
-        // まだ最後のスクロールが検出されていない場合
-        if (willBeLastScroll) {
-          // 最後のスクロールになりそうな場合に差分検出
-          console.log("Processing potential last scroll data");
-          isLastScrollDetected = true; // 最後のスクロールとして検出済みとマーク
+      // Determine how to process the data
+      if (isLastScrollDetected) {
+        // Skip content addition if we've already processed the last scroll
+        console.log("Already processed last scroll, skipping content addition");
+      } else if (willBeLastScroll) {
+        // This is likely the last scroll - detect and handle overlap
+        console.log("Processing potential last scroll data");
+        isLastScrollDetected = true;
 
-          // 複数行の比較による重複検出
-          const currentLines = currentContent.split("\n");
-          const prevLines = previousContent.split("\n");
+        // Compare current content with previous content to find overlaps
+        const currentLines = currentContent.split("\n");
+        const prevLines = previousContent.split("\n");
+        const linesToCompare = Math.min(5, prevLines.length);
+        const prevLastLines = prevLines.slice(-linesToCompare);
 
-          // 前回のコンテンツの最後の最大5行を取得
-          const linesToCompare = 5;
-          const prevLastLines = prevLines.slice(Math.max(0, prevLines.length - linesToCompare));
+        // Find where previous content ends in current content
+        let overlapIndex = -1;
 
-          // 連続一致を確認
-          let overlapIndex = -1;
+        if (prevLastLines.length > 0 && currentLines.length > 0) {
+          console.log("Comparing", prevLastLines.length, "previous lines with current content");
 
-          if (prevLastLines.length > 0 && currentLines.length > 0) {
-            console.log("Comparing", prevLastLines.length, "previous lines with current content");
-
-            // 現在のコンテンツの各行から開始して、連続一致をチェック
-            for (let i = 0; i <= currentLines.length - prevLastLines.length; i++) {
-              let allLinesMatch = true;
-
-              // 選択した開始位置から連続するN行が一致するかチェック
-              for (let j = 0; j < prevLastLines.length; j++) {
-                if (currentLines[i + j] !== prevLastLines[j]) {
-                  allLinesMatch = false;
-                  break;
-                }
-              }
-
-              // 全行が一致した場合、開始位置を記録
-              if (allLinesMatch) {
-                overlapIndex = i + prevLastLines.length - 1;
-                console.log("Found matching pattern at index:", i, "to", overlapIndex,
-                  "Previous lines:", JSON.stringify(prevLastLines),
-                  "Current matching section:", JSON.stringify(currentLines.slice(i, i + prevLastLines.length)));
-                break;
-              }
+          // Find the first position where all lines match
+          for (let i = 0; i <= currentLines.length - prevLastLines.length; i++) {
+            if (prevLastLines.every((line, j) => line === currentLines[i + j])) {
+              overlapIndex = i + prevLastLines.length - 1;
+              console.log("Found matching pattern at index:", i, "to", overlapIndex);
+              break;
             }
-
-            if (overlapIndex === -1) {
-              console.log("No matching pattern found between previous and current content");
-            }
-          } else {
-            console.log("Not enough lines to compare. Previous:", prevLastLines.length, "Current:", currentLines.length);
           }
+        }
 
-          // 重複していない部分だけを追加
-          if (overlapIndex !== -1 && overlapIndex < currentLines.length - 1) {
-            const uniqueLines = currentLines.slice(overlapIndex + 1);
-            mergedContent += uniqueLines.join("\n") + "\n";
-            console.log("Added", uniqueLines.length, "unique lines");
-          } else {
-            // 重複が見つからない場合は全て追加
-            mergedContent += currentContent + "\n";
-            console.log("No overlap found, added all content");
-          }
+        // Add only unique (non-overlapping) content
+        if (overlapIndex !== -1 && overlapIndex < currentLines.length - 1) {
+          const uniqueLines = currentLines.slice(overlapIndex + 1);
+          mergedContent += uniqueLines.join("\n") + "\n";
+          console.log("Added", uniqueLines.length, "unique lines");
         } else {
-          // 通常のスクロールでは全コンテンツを追加
           mergedContent += currentContent + "\n";
-          console.log("Normal scroll, added all content");
+          console.log("No overlap found, added all content");
         }
       } else {
-        // 既に最後のスクロールとして検出済みの場合、コンテンツは追加しない
-        console.log("Already processed last scroll, skipping content addition");
+        // Normal scroll - add all content
+        mergedContent += currentContent + "\n";
+        console.log("Normal scroll, added all content");
       }
 
       // 次回の比較用に現在のコンテンツを保存
