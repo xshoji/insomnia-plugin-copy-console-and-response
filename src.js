@@ -39,7 +39,7 @@
 
   const getPanelHeaderValues = (result) => {
     return new Promise((resolve) => {
-      const panelHeaderValueElements = document.querySelector("[aria-live='polite']").getElementsByTagName("div");
+      const panelHeaderValueElements = document.querySelector(`[data-testid="response-pane"]`).querySelector(`[aria-live="polite"]`).getElementsByTagName("div");
       const values = Array.from(new Set(Array.from(panelHeaderValueElements).map(e => e.textContent))).join(", ");
       if (OptionalSettingSetSeparator !== "") {
         result.value += OptionalSettingSetSeparator + "\n";
