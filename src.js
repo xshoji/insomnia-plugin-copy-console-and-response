@@ -100,103 +100,15 @@
   };
 
   const acquireCompleteTimeline = async (result) => {
-    let mergedContent = "";
-    let previousContent = fetchTimelineContent();
-    mergedContent += previousContent + "\n";
-
-    let prevScrollTop = 0;
-    let isLastScrollDetected = false;
-
-    do {
-      // タイムラインコンテナを1度取得して変数に保持
-      const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-      let codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
-      prevScrollTop = codeMirrorScroll.scrollTop;
-
-      // 事前に最後のスクロールかどうかを判定
-      const willBeLastScroll = (prevScrollTop + codeMirrorScroll.clientHeight * 2 >= codeMirrorScroll.scrollHeight);
-      console.log("Pre-checking if this will be the last scroll:",
-        "prevScrollTop:", prevScrollTop,
-        "clientHeight:", codeMirrorScroll.clientHeight,
-        "scrollHeight:", codeMirrorScroll.scrollHeight,
-        "willBeLastScroll:", willBeLastScroll
-      );
-
-      await scrollTimeline();
-      await waitMillisecond(100);
-
-      // 余分なDOMアクセスを削減するため、再度同じ変数から取得
-      codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
-      const newScrollTop = codeMirrorScroll.scrollTop;
-      console.log("Scrolled from", prevScrollTop, "to", newScrollTop);
-
-      // 進捗がない場合はループ終了
-      if (newScrollTop === prevScrollTop) {
-        console.log("No scroll progress, breaking loop");
-        break;
-      }
-
-      // 現在のコンテンツを取得
-      const currentContent = fetchTimelineContent();
-
-      // Determine how to process the data
-      if (isLastScrollDetected) {
-        // Skip content addition if we've already processed the last scroll
-        console.log("Already processed last scroll, skipping content addition");
-      } else if (willBeLastScroll) {
-        // This is likely the last scroll - detect and handle overlap
-        console.log("Processing potential last scroll data");
-        isLastScrollDetected = true;
-
-        // Compare current content with previous content to find overlaps
-        const currentLines = currentContent.split("\n");
-        const prevLines = previousContent.split("\n");
-        const linesToCompare = Math.min(5, prevLines.length);
-        const prevLastLines = prevLines.slice(-linesToCompare);
-
-        // Find where previous content ends in current content
-        let overlapIndex = -1;
-
-        if (prevLastLines.length > 0 && currentLines.length > 0) {
-          console.log("Comparing", prevLastLines.length, "previous lines with current content");
-
-          // Find the first position where all lines match
-          for (let i = 0; i <= currentLines.length - prevLastLines.length; i++) {
-            if (prevLastLines.every((line, j) => line === currentLines[i + j])) {
-              overlapIndex = i + prevLastLines.length - 1;
-              console.log("Found matching pattern at index:", i, "to", overlapIndex);
-              break;
-            }
-          }
-        }
-
-        // Add only unique (non-overlapping) content
-        if (overlapIndex !== -1 && overlapIndex < currentLines.length - 1) {
-          const uniqueLines = currentLines.slice(overlapIndex + 1);
-          mergedContent += uniqueLines.join("\n") + "\n";
-          console.log("Added", uniqueLines.length, "unique lines");
-        } else {
-          mergedContent += currentContent + "\n";
-          console.log("No overlap found, added all content");
-        }
-      } else {
-        // Normal scroll - add all content
-        mergedContent += currentContent + "\n";
-        console.log("Normal scroll, added all content");
-      }
-
-      // 次回の比較用に現在のコンテンツを保存
-      previousContent = currentContent;
-
-      // 実際にスクロールが最後に達した場合はループを終了
-      if (isLastScrollDetected) {
-        console.log("Last scroll was already detected, breaking after this iteration");
-        break;
-      }
-    } while (true);
-
-    console.log("Finished scrolling");
-    result.value += mergedContent;
+    // タイムラインのCodeMirrorインスタンスを取得
+    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+    const codeMirror = timelineContainer.querySelector(".CodeMirror");
+    const cm = codeMirror && codeMirror.CodeMirror;
+    if (cm) {
+      // CodeMirrorの全内容を直接取得
+      const text = cm.getValue();
+      result.value += text + "\n";
+    }
   };
 
   const getPreviewContent = (result) => {
