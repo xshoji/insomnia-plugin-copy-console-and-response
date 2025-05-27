@@ -44,7 +44,7 @@
       if (OptionalSettingSetSeparator !== "") {
         result.value += OptionalSettingSetSeparator + "\n";
       }
-      result.value += values;
+      result.value += values + "\n";
       resolve(result);
     });
   };
