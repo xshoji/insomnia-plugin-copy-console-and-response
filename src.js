@@ -5,7 +5,7 @@
 
   /* Optional settings */
   const OptionalSettingSetSeparator = "";
-  const OptionalSettingDisplayCurrentTimezoneTime = false;
+  const OptionalSettingDisplayCurrentLocalTime = true;
   const MaskingLogFiledRegex = /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g;
 
   /* Wait specified millisecond */
@@ -37,14 +37,6 @@
     document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "Raw Data")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0).click();
   };
 
-  const scrollTimeline = async () => {
-    // 取得したタイムラインコンテナを変数に保持
-    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-    const codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
-    const scrollAmount = codeMirrorScroll.clientHeight;
-    codeMirrorScroll.scroll(0, codeMirrorScroll.scrollTop + scrollAmount);
-  };
-
   const getPanelHeaderValues = (result) => {
     return new Promise((resolve) => {
       const panelHeaderValueElements = document.querySelector("[aria-live='polite']").getElementsByTagName("div");
@@ -57,48 +49,6 @@
     });
   };
 
-  const fetchTimelineContent = () => {
-    /* curl用のprefix文字列を削除 */
-    Array.from(document.getElementsByClassName("cm-curl-prefix cm-curl-data")).forEach(e => e.remove());
-    // タイムラインコンテナの取得を1度だけにする
-    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-    const codeMirrorScroll = timelineContainer.getElementsByClassName("CodeMirror-scroll")[0];
-    // 取得領域の可視領域情報
-    const scrollRect = codeMirrorScroll.getBoundingClientRect();
-    // コード行（pre要素）をすべて取得し、可視領域にあるものだけをフィルタ
-    const preElements = Array.from(codeMirrorScroll.querySelectorAll("pre"));
-    const visiblePreElements = preElements.filter(pre => {
-      const preRect = pre.getBoundingClientRect();
-      return preRect.bottom > scrollRect.top && preRect.top < scrollRect.bottom;
-    });
-    // 可視行のみからテキストを連結
-    let timelineContent = visiblePreElements.map(e => e.textContent).join("\n");
-    // スクロールがTOPでない場合、取得されたデータの最初の1行目を削除する
-    if (codeMirrorScroll.scrollTop > 0) {
-      timelineContent = timelineContent.split("\n").slice(1).join("\n");
-    } else {
-      // スクロールがTOPの場合だけ、先頭の不要な部分を削除
-      timelineContent = timelineContent.slice(10);
-    }
-    const getFormattedDate = (date) => {
-      let weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      let yyyy = date.getFullYear();
-      let mm = ("0" + (date.getMonth() + 1)).slice(-2);
-      let dd = ("0" + date.getDate()).slice(-2);
-      let hh = ("0" + date.getHours()).slice(-2);
-      let mi = ("0" + date.getMinutes()).slice(-2);
-      let ss = ("0" + date.getSeconds()).slice(-2);
-      let week = weekday[date.getDay()];
-      return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
-    };
-    if (OptionalSettingDisplayCurrentTimezoneTime) {
-      timelineContent = timelineContent.replace(/([d|D]ate:.*GMT)/g, (s) => {
-        return s + " ( " + getFormattedDate(new Date(Date.parse(s))) + " )";
-      });
-    }
-    return timelineContent;
-  };
-
   const acquireCompleteTimeline = async (result) => {
     // タイムラインのCodeMirrorインスタンスを取得
     const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
@@ -106,7 +56,27 @@
     const cm = codeMirror && codeMirror.CodeMirror;
     if (cm) {
       // CodeMirrorの全内容を直接取得
-      const text = cm.getValue();
+      let text = cm.getValue();
+      // Remove "| " prefix from the beginning of each line
+      text = text.replace(/\n[|]\s/gm, "\n");
+
+      const getFormattedDate = (date) => {
+        let weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        let yyyy = date.getFullYear();
+        let mm = ("0" + (date.getMonth() + 1)).slice(-2);
+        let dd = ("0" + date.getDate()).slice(-2);
+        let hh = ("0" + date.getHours()).slice(-2);
+        let mi = ("0" + date.getMinutes()).slice(-2);
+        let ss = ("0" + date.getSeconds()).slice(-2);
+        let week = weekday[date.getDay()];
+        return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
+      };
+      if (OptionalSettingDisplayCurrentLocalTime) {
+        text = text.replace(/([d|D]ate:.*GMT)/g, (s) => {
+          return s + " ( LocalTime: " + getFormattedDate(new Date(Date.parse(s))) + " - provided by insomnia-plugin-copy-timeline-and-response )";
+        });
+      }
+
       result.value += text + "\n";
     }
   };
