@@ -5,7 +5,7 @@
 
   /* Optional settings */
   const OptionalSettingSetSeparator = "";
-  const OptionalSettingDisplayCurrentLocalTime = true;
+  const OptionalSettingDisplayCurrentLocalTime = false;
   const MaskingLogFiledRegex = /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g;
 
   /* Wait specified millisecond */
