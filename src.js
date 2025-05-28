@@ -137,13 +137,16 @@
             return;
           }
 
-          // Remove "Rawxxxxxxxxxx " prefix
-          let formatted = content.slice(14);
+          // Remove "Rawxxxxxxxxxx " prefix and remove zero-width characters
+          let formatted = content.slice(14).replace(/[\u200B-\u200D\uFEFF]/g, "");
+          console.log("formatted json:" + formatted);
 
           try {
             // Format if JSON
             formatted = JSON.stringify(JSON.parse(formatted), null, 2);
-          } catch (e) { } // Leave as is if not JSON
+          } catch (e) {
+            console.error("Failed to JSON.stringify(JSON.parse(formatted), null, 2):", e);
+          } // Leave as is if not JSON
 
           result.value += "\n" + formatted + "\n";
           resolve(result);
