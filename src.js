@@ -1,118 +1,178 @@
 (() => {
-
-  /* Constant value */
-  const PluginName = "insomnia-plugin-copy-timeline-and-response";
-
-  /* Optional settings */
-  const OptionalSettingSetSeparator = "";
-  const OptionalSettingDisplayCurrentLocalTime = false;
-  const MaskingLogFiledRegex = /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g;
-
-  /* Wait specified millisecond */
-  const waitMillisecond = (millisecond) => {
-    return new Promise(resolve => setTimeout(resolve, millisecond));
+  // Configuration
+  const Config = {
+    pluginName: "insomnia-plugin-copy-timeline-and-response",
+    setSeparator: "",
+    displayCurrentLocalTime: false,
+    maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
+    waitTimeForInitialization: 3000,
+    buttonPosition: "Sign up for free"
   };
 
-  const appendCssDefinition = (cssDefinition) => {
-    // Define main class style
-    let styleElement = document.createElement('style');
-    styleElement.type = 'text/css';
-    styleElement.innerHTML = cssDefinition;
-    document.getElementsByTagName('head')[0].appendChild(styleElement);
+  // Utility functions
+  const Utils = {
+    // Wait for specified time
+    wait: ms => new Promise(resolve => setTimeout(resolve, ms)),
+
+    appendCss: cssDefinition => {
+      if (Array.from(document.querySelectorAll('style')).some(style => style.innerHTML === cssDefinition)) return;
+      const style = document.createElement('style');
+      style.type = 'text/css';
+      style.innerHTML = cssDefinition;
+      document.head.appendChild(style);
+    },
+
+    formatDate: date => {
+      const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const d = new Date(date);
+      const pad = num => String(num).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${weekday[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    },
+
+    maskSensitiveInfo: text => text.replaceAll(Config.maskingLogFiledRegex, "$1 ****")
   };
 
-  const clickTimelineTab = async () => {
-    document.querySelector("[data-key='timeline']").click();
-  };
-
-  const clickPreviewTab = async () => {
-    document.querySelector("[data-key='preview']").click();
-  };
-
-  const clickPreviewModeModal = async () => {
-    document.querySelector("[data-key='preview']").parentElement.nextElementSibling.querySelector("[type='Button']").click();
-  };
-
-  const clickRawDataInPreviewMode = async () => {
-    document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "Raw Data")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0).click();
-  };
-
-  const getPanelHeaderValues = (result) => {
-    return new Promise((resolve) => {
-      const panelHeaderValueElements = document.querySelector(`[data-testid="response-pane"]`).querySelector(`[aria-live="polite"]`).getElementsByTagName("div");
-      const values = Array.from(new Set(Array.from(panelHeaderValueElements).map(e => e.textContent))).join(", ");
-      if (OptionalSettingSetSeparator !== "") {
-        result.value += OptionalSettingSetSeparator + "\n";
+  // DOM operation functions
+  const DomOperations = {
+    clickElement: async ({ selector, xpath, getTarget }) => {
+      try {
+        let el = null;
+        if (selector) {
+          el = document.querySelector(selector);
+        } else if (xpath) {
+          el = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+        }
+        if (getTarget && el) el = getTarget(el);
+        el?.click();
+        return !!el;
+      } catch (e) {
+        console.error("Failed to click element:", e);
+        return false;
       }
-      result.value += values + "\n";
-      resolve(result);
-    });
-  };
+    },
 
-  const acquireCompleteTimeline = async (result) => {
-    // タイムラインのCodeMirrorインスタンスを取得
-    const timelineContainer = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-    const codeMirror = timelineContainer.querySelector(".CodeMirror");
-    const cm = codeMirror && codeMirror.CodeMirror;
-    if (cm) {
-      // CodeMirrorの全内容を直接取得
-      let text = cm.getValue();
-      // Remove "| " prefix from the beginning of each line
-      text = text.replace(/\n[|]\s/gm, "\n");
+    clickTimelineTab: async () => DomOperations.clickElement({ selector: "[data-key='timeline']" }),
 
-      const getFormattedDate = (date) => {
-        let weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        let yyyy = date.getFullYear();
-        let mm = ("0" + (date.getMonth() + 1)).slice(-2);
-        let dd = ("0" + date.getDate()).slice(-2);
-        let hh = ("0" + date.getHours()).slice(-2);
-        let mi = ("0" + date.getMinutes()).slice(-2);
-        let ss = ("0" + date.getSeconds()).slice(-2);
-        let week = weekday[date.getDay()];
-        return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
-      };
-      if (OptionalSettingDisplayCurrentLocalTime) {
-        text = text.replace(/([d|D]ate:.*GMT)/g, (s) => {
-          return s + " ( LocalTime: " + getFormattedDate(new Date(Date.parse(s))) + " - provided by insomnia-plugin-copy-timeline-and-response )";
-        });
-      }
+    clickPreviewTab: async () => DomOperations.clickElement({ selector: "[data-key='preview']" }),
 
-      result.value += text + "\n";
+    clickPreviewModeModal: async () =>
+      DomOperations.clickElement({
+        selector: "[data-key='preview']",
+        getTarget: el => el.parentElement?.nextElementSibling?.querySelector("[type='Button']")
+      }),
+
+    clickRawDataInPreviewMode: async () =>
+      DomOperations.clickElement({
+        xpath: '//*[not(contains(name(), "script")) and contains(text(), "Raw Data")]'
+      }),
+
+    insertElementAtPosition: (element, referenceText) => {
+      try {
+        const node = document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "' + referenceText + '")]',
+          document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+        if (node?.parentNode) {
+          node.parentNode.insertBefore(element, node.nextSibling);
+          return true;
+        }
+      } catch (e) { console.error("Failed to insert element:", e); }
+      return false;
     }
   };
 
-  const getPreviewContent = (result) => {
-    return new Promise((resolve) => {
-      const previewContent = document.querySelector("[data-key='preview']").parentElement.nextElementSibling.textContent;
-      /* remove prefix "Rawxxxxxxxxxx " */
-      let previewContentResult = previewContent.slice(14);
-      try {
-        /* If preview content is json string, it is formatted. */
-        previewContentResult = JSON.stringify(JSON.parse(previewContentResult), null, 2);
-      } catch (e) {
-        console.log(e);
-      }
-      result.value += "\n" + previewContentResult + "\n";
-      resolve(result);
-    });
-  };
+  // Data processing functions
+  const DataProcessor = {
+    getPanelHeaderValues: result => {
+      return new Promise((resolve, reject) => {
+        try {
+          const elements = document.querySelector(`[data-testid="response-pane"]`)
+            .querySelector(`[aria-live="polite"]`)
+            .getElementsByTagName("div");
 
-  const copy = (result) => {
-    return new Promise((resolve) => {
-      /* Replace secret value */
-      const v = result.value.replaceAll(MaskingLogFiledRegex, "$1 ****");
-      navigator.clipboard.writeText(v);
-      resolve(result);
-    });
+          const values = Array.from(new Set(
+            Array.from(elements).map(e => e.textContent)
+          )).join(", ");
+
+          if (Config.setSeparator) result.value += Config.setSeparator + "\n";
+          result.value += values + "\n";
+          resolve(result);
+        } catch (e) {
+          console.error("Failed to get header values:", e);
+          reject(e);
+        }
+      });
+    },
+
+    getTimeline: async result => {
+      try {
+        const container = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
+        const cm = container.querySelector(".CodeMirror")?.CodeMirror;
+
+        if (cm) {
+          let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
+
+          if (Config.displayCurrentLocalTime) {
+            text = text.replace(/([d|D]ate:.*GMT)/g, s =>
+              s + " ( LocalTime: " + Utils.formatDate(new Date(Date.parse(s))) +
+              " - provided by " + Config.pluginName + " )"
+            );
+          }
+
+          result.value += text + "\n";
+        }
+        return result;
+      } catch (e) {
+        console.error("Failed to get timeline data:", e);
+        return result;
+      }
+    },
+
+    getPreviewContent: result => {
+      return new Promise((resolve, reject) => {
+        try {
+          const content = document.querySelector("[data-key='preview']")
+            .parentElement.nextElementSibling?.textContent;
+
+          if (!content) {
+            reject(new Error("Preview element not found"));
+            return;
+          }
+
+          // Remove "Rawxxxxxxxxxx " prefix
+          let formatted = content.slice(14);
+
+          try {
+            // Format if JSON
+            formatted = JSON.stringify(JSON.parse(formatted), null, 2);
+          } catch (e) { } // Leave as is if not JSON
+
+          result.value += "\n" + formatted + "\n";
+          resolve(result);
+        } catch (e) {
+          console.error("Failed to get preview:", e);
+          reject(e);
+        }
+      });
+    },
+
+    copyToClipboard: result => {
+      return new Promise((resolve, reject) => {
+        try {
+          navigator.clipboard.writeText(Utils.maskSensitiveInfo(result.value));
+          resolve(result);
+        } catch (e) {
+          console.error("Failed to copy to clipboard:", e);
+          reject(e);
+        }
+      });
+    }
   };
 
   const createCopyButton = () => {
-    /* <button type="button" style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%);">Copy</button> */
     const copyButton = document.createElement("div");
 
-    /* icons.css/dist/icons.css at master · picturepan2/icons.css https://github.com/picturepan2/icons.css/blob/master/dist/icons.css */
-    appendCssDefinition(`
-      .${PluginName}-icon {
+    // Define CSS
+    Utils.appendCss(`
+      .${Config.pluginName}-icon {
         box-sizing: border-box;
         display: inline-block;
         font-size: inherit;
@@ -124,8 +184,8 @@
         width: 1em;
       }
       
-      .${PluginName}-icon::before,
-      .${PluginName}-icon::after {
+      .${Config.pluginName}-icon::before,
+      .${Config.pluginName}-icon::after {
         content: "";
         display: block;
         left: 50%;
@@ -134,7 +194,7 @@
         transform: translate(-50%, -50%);
       }
       
-      .${PluginName}-icon-copy::before {
+      .${Config.pluginName}-icon-copy::before {
         border: .1rem solid currentColor;
         border-bottom-color: transparent;
         border-radius: .1em;
@@ -145,7 +205,7 @@
         width: .7em;
       }
       
-      .${PluginName}-icon-copy::after {
+      .${Config.pluginName}-icon-copy::after {
         border: .1rem solid currentColor;
         border-radius: .1em;
         height: .8em;
@@ -153,46 +213,62 @@
         top: 60%;
         width: .7em;
       }
-    `)
+    `);
 
+    // Create button element
     copyButton.style.cssText = "display: flex;";
     copyButton.innerHTML = `
     <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); display: flex; justify-content: center; align-items: center;">
-      <div class="${PluginName}-icon ${PluginName}-icon-copy" style="margin: 2px 5px 0px 3px"></div>
+      <div class="${Config.pluginName}-icon ${Config.pluginName}-icon-copy" style="margin: 2px 5px 0px 3px"></div>
       <div style="display: flex; justify-content: center; align-items: center;">Timeline</div>
     </button>
     `;
-    copyButton.addEventListener("click", () => {
-      const result = {
-        value: ""
-      };
-      (async () => {
-        /* Wait searched results and gather these messages */
-        await clickTimelineTab();
-        await waitMillisecond(100);
-        await getPanelHeaderValues(result);
-        await acquireCompleteTimeline(result);
-        await clickPreviewTab();
-        await waitMillisecond(100);
-        await clickPreviewModeModal();
-        await waitMillisecond(200);
-        await clickRawDataInPreviewMode();
-        await waitMillisecond(300);
-        await getPreviewContent(result);
-        await copy(result);
-      })();
-    })
-    const searchTargetText = "Sign up for free";
-    const nodesSnapshot = document.evaluate('//*[not(contains(name(), "script")) and contains(text(), "' + searchTargetText + '")]', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-    const signUpNode = nodesSnapshot.snapshotItem(0);
-    signUpNode.parentNode.insertBefore(copyButton, signUpNode.nextSibling);
+
+    // Data collection process
+    const processData = async () => {
+      try {
+        const result = { value: "" };
+
+        // Collect timeline data
+        await DomOperations.clickTimelineTab();
+        await Utils.wait(100);
+        await DataProcessor.getPanelHeaderValues(result);
+        await DataProcessor.getTimeline(result);
+
+        // Collect preview data
+        await DomOperations.clickPreviewTab();
+        await Utils.wait(100);
+        await DomOperations.clickPreviewModeModal();
+        await Utils.wait(200);
+        await DomOperations.clickRawDataInPreviewMode();
+        await Utils.wait(300);
+        await DataProcessor.getPreviewContent(result);
+
+        // Execute copy
+        await DataProcessor.copyToClipboard(result);
+        console.log("Copying data completed");
+      } catch (e) {
+        console.error("Data collection process failed:", e);
+      }
+    };
+
+    // Set click event
+    copyButton.addEventListener("click", processData);
+
+    // Place button
+    DomOperations.insertElementAtPosition(copyButton, Config.buttonPosition);
+
+    return copyButton;
   };
 
-  /* main */
-  const main = () => {
-    const waitTimeMillSeconds = 3000;
-    setTimeout(createCopyButton, waitTimeMillSeconds);
-  };
+  // Initialize the plugin
+  setTimeout(() => {
+    try {
+      createCopyButton();
+      console.log(`${Config.pluginName} plugin initialized`);
+    } catch (e) {
+      console.error("Plugin initialization failed:", e);
+    }
+  }, Config.waitTimeForInitialization);
 
-  main();
-})()
+})();
