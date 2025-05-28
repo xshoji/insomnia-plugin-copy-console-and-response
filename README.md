@@ -2,7 +2,11 @@
 
 The insomnia-plugin-copy-timeline-and-response provides a feature for quickly copying the timeline and response body.
 
-[demo](https://github.com/user-attachments/assets/905a9d2c-7d0a-49ad-83f2-9da176f35ae2)
+[demo](https://github.com/user-attachments/assets/dccc5457-0335-44a8-aeac-8de888fe47ab)
+
+
+
+
 
 
 
