@@ -111,8 +111,11 @@
         if (cm) {
           let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
 
-          if (!Config.displayConnectionProcessDetails) {
-            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n");
+          if (Config.displayConnectionProcessDetails) {
+            // Add line breaks for better readabligity of response body
+            text = text + "\n\n";
+          } else {
+            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n") + "\n";
           }
 
           if (Config.displayCurrentLocalTime) {
@@ -122,7 +125,7 @@
             );
           }
 
-          result.value += text + "\n";
+          result.value += text;
         }
         return result;
       } catch (e) {
@@ -153,7 +156,7 @@
             console.error("Failed to JSON.stringify(JSON.parse(formatted), null, 2):", e);
           } // Leave as is if not JSON
 
-          result.value += "\n" + formatted + "\n";
+          result.value += formatted + "\n";
           resolve(result);
         } catch (e) {
           console.error("Failed to get preview:", e);
