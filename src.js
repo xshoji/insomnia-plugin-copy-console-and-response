@@ -4,6 +4,7 @@
     pluginName: "insomnia-plugin-copy-timeline-and-response",
     setSeparator: "",
     displayCurrentLocalTime: false,
+    displayConnectionProcessDetails: true,
     maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
     buttonPosition: "Sign up for free"
@@ -109,6 +110,10 @@
 
         if (cm) {
           let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
+
+          if (!Config.displayConnectionProcessDetails) {
+            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n");
+          }
 
           if (Config.displayCurrentLocalTime) {
             text = text.replace(/([d|D]ate:.*GMT)/g, s =>
