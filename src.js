@@ -87,11 +87,11 @@
         try {
           const panelAreaElement = document.querySelector("[data-testid='response-pane']").querySelector(`[aria-live="polite"]`);
           const elements = panelAreaElement.getElementsByTagName("div");
-          const requestedDatetime = panelAreaElement.nextSibling?.getElementsByTagName("span")[0].getAttribute("title");
+          const responsedDatetime = panelAreaElement.nextSibling?.getElementsByTagName("span")[0].getAttribute("title");
 
           const values = Array.from(new Set(
             Array.from(elements).map(e => e.textContent)
-          )).join(", ") + ", " + requestedDatetime;
+          )).join(", ") + ", " + responsedDatetime;
 
           if (Config.setSeparator) result.value += Config.setSeparator + "\n";
           result.value += values + "\n";
