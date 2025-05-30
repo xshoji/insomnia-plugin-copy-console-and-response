@@ -85,13 +85,13 @@
     getPanelHeaderValues: result => {
       return new Promise((resolve, reject) => {
         try {
-          const elements = document.querySelector(`[data-testid="response-pane"]`)
-            .querySelector(`[aria-live="polite"]`)
-            .getElementsByTagName("div");
+          const panelAreaElement = document.querySelector("[data-testid='response-pane']").querySelector(`[aria-live="polite"]`);
+          const elements = panelAreaElement.getElementsByTagName("div");
+          const requestedDatetime = panelAreaElement.nextSibling?.getElementsByTagName("span")[0].getAttribute("title");
 
           const values = Array.from(new Set(
             Array.from(elements).map(e => e.textContent)
-          )).join(", ");
+          )).join(", ") + ", " + requestedDatetime;
 
           if (Config.setSeparator) result.value += Config.setSeparator + "\n";
           result.value += values + "\n";
