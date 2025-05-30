@@ -4,7 +4,7 @@
     pluginName: "insomnia-plugin-copy-timeline-and-response",
     setSeparator: "",
     displayCurrentLocalTime: false,
-    displayConnectionProcessDetails: true,
+    displayConnectionProcessDetails: false,
     maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
     buttonPosition: "Sign up for free"
@@ -62,9 +62,9 @@
         getTarget: el => el.parentElement?.nextElementSibling?.querySelector("[type='Button']")
       }),
 
-    clickRawDataInPreviewMode: async () =>
+    clickSourceCodeInPreviewMode: async () =>
       DomOperations.clickElement({
-        xpath: '//*[not(contains(name(), "script")) and contains(text(), "Raw Data")]'
+        xpath: '//*[not(contains(name(), "script")) and contains(text(), "Source Code")]'
       }),
 
     insertElementAtPosition: (element, referenceText) => {
@@ -105,8 +105,8 @@
 
     getTimeline: async result => {
       try {
-        const container = document.querySelector("[data-key='timeline']").parentElement.nextElementSibling;
-        const cm = container.querySelector(".CodeMirror")?.CodeMirror;
+        const cm = document.querySelector("[data-key='timeline']")
+          .parentElement.nextElementSibling?.querySelector(".CodeMirror")?.CodeMirror;
 
         if (cm) {
           let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
@@ -137,17 +137,16 @@
     getPreviewContent: result => {
       return new Promise((resolve, reject) => {
         try {
-          const content = document.querySelector("[data-key='preview']")
-            .parentElement.nextElementSibling?.textContent;
+          const cm = document.querySelector("[data-key='preview']")
+            .parentElement.nextElementSibling?.querySelector(".CodeMirror")?.CodeMirror;
 
-          if (!content) {
-            reject(new Error("Preview element not found"));
-            return;
+          let content = ""
+          if (cm) {
+            content = cm.getValue();
           }
 
           // Remove "Rawxxxxxxxxxx " prefix and remove zero-width characters
-          let formatted = content.slice(14).replace(/[\u200B-\u200D\uFEFF]/g, "");
-          console.log("formatted json:" + formatted);
+          let formatted = content.replace(/[\u200B-\u200D\uFEFF]/g, "");
 
           try {
             // Format if JSON
@@ -251,7 +250,7 @@
         await Utils.wait(100);
         await DomOperations.clickPreviewModeModal();
         await Utils.wait(200);
-        await DomOperations.clickRawDataInPreviewMode();
+        await DomOperations.clickSourceCodeInPreviewMode();
         await Utils.wait(300);
         await DataProcessor.getPreviewContent(result);
 
