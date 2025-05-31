@@ -1,11 +1,11 @@
 {
-  "name": "insomnia-plugin-copy-timeline-and-response",
+  "name": "insomnia-plugin-copy-console-and-response",
   "version": "0.0.1",
   "main": "src.js",
   "insomnia": {
-    "name": "copy-timeline-and-response",
-    "displayName": "copy-timeline-and-response",
-    "description": "Copy timeline and response.",
+    "name": "copy-console-and-response",
+    "displayName": "copy-console-and-response",
+    "description": "Copy console and response.",
     "publisher": {
       "name": "xshoji",
       "icon": "https://avatars.githubusercontent.com/u/40511798?v=4"

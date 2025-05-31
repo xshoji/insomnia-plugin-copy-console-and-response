@@ -1,7 +1,7 @@
 (() => {
   // Configuration
   const Config = {
-    pluginName: "insomnia-plugin-copy-timeline-and-response",
+    pluginName: "insomnia-plugin-copy-console-and-response",
     setSeparator: "",
     displayCurrentLocalTime: false,
     displayConnectionProcessDetails: false,

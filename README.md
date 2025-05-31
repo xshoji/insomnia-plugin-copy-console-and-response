@@ -1,6 +1,6 @@
-# insomnia-plugin-copy-timeline-and-response
+# insomnia-plugin-copy-console-and-response
 
-The insomnia-plugin-copy-timeline-and-response provides a feature for quickly copying the timeline and response body.
+The insomnia-plugin-copy-console-and-response provides a feature for quickly copying the console and response body.
 
 [demo](https://github.com/user-attachments/assets/dccc5457-0335-44a8-aeac-8de888fe47ab)
 
@@ -14,5 +14,5 @@ The insomnia-plugin-copy-timeline-and-response provides a feature for quickly co
 
 ```
 cd "/Users/user/Library/Application Support/Insomnia/plugins"
-git clone https://github.com/xshoji/insomnia-plugin-copy-timeline-and-response
+git clone https://github.com/xshoji/insomnia-plugin-copy-console-and-response
 ```
