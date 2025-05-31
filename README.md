@@ -2,6 +2,9 @@
 
 A powerful plugin for Insomnia REST Client that enhances your API testing workflow by allowing you to easily copy and format both console logs and API response data with a single click.
 
+[demo](https://github.com/user-attachments/assets/fe2669da-be2e-4355-a00b-08f1ca39644c)
+
+
 ## Overview
 
 This plugin adds a "Console" button to your Insomnia interface that, when clicked, collects and copies to your clipboard:
