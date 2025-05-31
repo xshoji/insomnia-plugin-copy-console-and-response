@@ -7,7 +7,8 @@
     displayConnectionProcessDetails: false,
     maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
-    buttonPosition: "Sign up for free"
+    buttonPosition: "Sign up for free",
+    buttonText: "Console",
   };
 
   // Utility functions
@@ -236,7 +237,7 @@
     copyButton.innerHTML = `
     <button style="padding: 10px;color: #FFF;background: rgb(130 130 130 / 35%); display: flex; justify-content: center; align-items: center;">
       <div class="${Config.pluginName}-icon ${Config.pluginName}-icon-copy" style="margin: 2px 5px 0px 3px"></div>
-      <div style="display: flex; justify-content: center; align-items: center;">Timeline</div>
+      <div style="display: flex; justify-content: center; align-items: center;">${Config.buttonText}</div>
     </button>
     `;
 
