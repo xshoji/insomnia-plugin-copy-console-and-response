@@ -86,15 +86,21 @@
       return new Promise((resolve, reject) => {
         try {
           const panelAreaElement = document.querySelector("[data-testid='response-pane']").querySelector(`[aria-live="polite"]`);
-          const elements = panelAreaElement.getElementsByTagName("div");
+          const panelValues = Array.from(panelAreaElement.childNodes).map(e => e.innerText);
+          // s or ms
+          const responseTotalTime = panelValues[1];
+          const responsedSize = panelValues[2];
           const responsedDatetime = panelAreaElement.nextSibling?.getElementsByTagName("span")[0].getAttribute("title");
 
-          const values = Array.from(new Set(
-            Array.from(elements).map(e => e.textContent)
-          )).join(", ") + ", " + responsedDatetime;
+          let requestStartTime = Utils.formatDate(responsedDatetime);
+          if (!responseTotalTime.includes("ms") && responseTotalTime.includes("s")) {
+            // 123.4 s -> 123.4 -> 123400
+            const responseTimeInSec = responseTotalTime.replace(/\ss/, "") * 1000;
+            requestStartTime = Utils.formatDate(new Date(responsedDatetime) - responseTimeInSec);
+          }
 
           if (Config.setSeparator) result.value += Config.setSeparator + "\n";
-          result.value += values + "\n";
+          result.value += [requestStartTime, responseTotalTime, responsedSize].join(", ") + "\n";
           resolve(result);
         } catch (e) {
           console.error("Failed to get header values:", e);
