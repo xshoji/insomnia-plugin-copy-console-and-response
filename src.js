@@ -4,7 +4,7 @@
     pluginName: "insomnia-plugin-copy-console-and-response",
     setSeparator: "",
     displayCurrentLocalTime: false,
-    displayConnectionProcessDetails: true,
+    hideConnectionProcessDetails: false,
     maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
     buttonPosition: "Sign up for free",
@@ -118,11 +118,11 @@
         if (cm) {
           let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
 
-          if (Config.displayConnectionProcessDetails) {
+          if (Config.hideConnectionProcessDetails) {
+            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n") + "\n";
+          } else {
             // Add line breaks for better readabligity of response body
             text = text + "\n\n";
-          } else {
-            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n") + "\n";
           }
 
           if (Config.displayCurrentLocalTime) {

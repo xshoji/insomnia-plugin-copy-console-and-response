@@ -2,9 +2,6 @@
 
 A powerful plugin for Insomnia REST Client that enhances your API testing workflow by allowing you to easily copy and format both console logs and API response data with a single click.
 
-[demo](https://github.com/user-attachments/assets/fe2669da-be2e-4355-a00b-08f1ca39644c)
-
-
 ## Overview
 
 This plugin adds a "Console" button to your Insomnia interface that, when clicked, collects and copies to your clipboard:
@@ -39,19 +36,15 @@ Example output when enabled:
 Date: Wed, 15 Mar 2023 08:30:45 GMT ( LocalTime: 2023-03-15 Wed 17:30:45 - provided by insomnia-plugin-copy-console-and-response )
 ```
 
-### displayConnectionProcessDetails
+### hideConnectionProcessDetails
 
 ```javascript
-displayConnectionProcessDetails: false,
+hideConnectionProcessDetails: false,
 ```
 
-When set to `true`, this option preserves connection process details in the timeline output. This includes connection establishment information, TLS handshake details, and other low-level networking information that starts with an asterisk (*).
+When set to `true`, this option filters out connection process details from the timeline output. This removes connection establishment information, TLS handshake details, and other low-level networking information that starts with an asterisk (*).
 
-When set to `false` (default), these connection details are filtered out to provide a cleaner output focused on the HTTP request and response content.
 
 ## How to Use
 
-```
-cd "/Users/user/Library/Application Support/Insomnia/plugins"
-git clone https://github.com/xshoji/insomnia-plugin-copy-console-and-response
-```
+[Installation and usage instructions here]
