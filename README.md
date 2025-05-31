@@ -29,7 +29,7 @@ The plugin provides several configuration options:
 displayCurrentLocalTime: false,
 ```
 
-When set to `true`, this option adds the local time next to Date headers in GMT format in the timeline output. This is helpful when you need to see response timestamps in your local timezone rather than just in GMT format.
+When set to `true`, this option adds the local time next to Date headers in GMT format in the console output. This is helpful when you need to see response timestamps in your local timezone rather than just in GMT format.
 
 Example output when enabled:
 ```
@@ -42,7 +42,7 @@ Date: Wed, 15 Mar 2023 08:30:45 GMT ( LocalTime: 2023-03-15 Wed 17:30:45 - provi
 hideConnectionProcessDetails: false,
 ```
 
-When set to `true`, this option filters out connection process details from the timeline output. This removes connection establishment information, TLS handshake details, and other low-level networking information that starts with an asterisk (*).
+When set to `true`, this option filters out connection process details from the console output. This removes connection establishment information, TLS handshake details, and other low-level networking information that starts with an asterisk (*).
 
 
 ## How to Use
