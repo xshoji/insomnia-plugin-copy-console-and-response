@@ -51,4 +51,7 @@ When set to `true`, this option filters out connection process details from the 
 
 ## How to Use
 
-[Installation and usage instructions here]
+```
+cd "/Users/user/Library/Application Support/Insomnia/plugins"
+git clone https://github.com/xshoji/insomnia-plugin-copy-console-and-response
+```
