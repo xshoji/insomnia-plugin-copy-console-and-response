@@ -119,7 +119,7 @@
           let text = cm.getValue().replace(/\n[|]\s/gm, "\n");
 
           if (Config.hideConnectionProcessDetails) {
-            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n/g, "\n") + "\n";
+            text = text.replace(/(?:^|\n)\*[^\n]+/g, "").replace(/\n\n\n/g, "\n\n").replace(/\n\n$/g, "\n") + "\n";
           } else {
             // Add line breaks for better readability of response body
             text = text + "\n\n";
