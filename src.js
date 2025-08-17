@@ -4,7 +4,7 @@
     pluginName: "insomnia-plugin-copy-console-and-response",
     setSeparator: "",
     displayCurrentLocalTime: false,
-    hideConnectionProcessDetails: false,
+    hideConnectionProcessDetails: true,
     maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
     buttonPosition: "Sign up for free",
