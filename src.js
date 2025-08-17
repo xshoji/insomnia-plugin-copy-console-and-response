@@ -5,7 +5,7 @@
     setSeparator: "",
     displayCurrentLocalTime: false,
     hideConnectionProcessDetails: true,
-    maskingLogFiledRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
+    maskingLogFieldRegex: /([Cc]ookie:|[Aa]uthorization: Bearer|"access_token":)(.*)/g,
     waitTimeForInitialization: 3000,
     buttonPosition: "Sign up for free",
     buttonText: "Console",
@@ -31,7 +31,7 @@
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${weekday[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     },
 
-    maskSensitiveInfo: text => text.replaceAll(Config.maskingLogFiledRegex, "$1 ****")
+    maskSensitiveInfo: text => text.replaceAll(Config.maskingLogFieldRegex, "$1 ****")
   };
 
   // DOM operation functions
